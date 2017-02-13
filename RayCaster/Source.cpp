@@ -108,7 +108,7 @@ public:
 
 	void spawnRay(Ray* newRay) {
 		for (auto ray : rays) {
-			Intersection intersection = Intersection(FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), sf::Vector2f(0, 0));
+			Intersection intersection = Intersection(*newRay, *ray, sf::Vector2f(0, 0));
 			bool isIntersecting = lineIntersection(*newRay, *ray, intersection);
 			if (isIntersecting) {
 				FiniteRay& fr2 = static_cast<FiniteRay&>(*ray);
@@ -120,7 +120,7 @@ public:
 	}
 
 	void trimStart(FiniteRay& toTrim, FiniteRay trimWith) {
-		Intersection intersection = Intersection(FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), sf::Vector2f(0, 0));
+		Intersection intersection = Intersection(trimWith, toTrim, sf::Vector2f(0, 0));
 		bool isIntersecting = lineIntersection(trimWith, toTrim, intersection);
 		if (isIntersecting) {
 			toTrim.p1 = intersection.p;
@@ -128,7 +128,7 @@ public:
 	}
 
 	void trimEnd(FiniteRay& toTrim, FiniteRay trimWith) {
-		Intersection intersection = Intersection(FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), sf::Vector2f(0, 0));
+		Intersection intersection = Intersection(trimWith, toTrim, sf::Vector2f(0, 0));
 		bool isIntersecting = lineIntersection(trimWith, toTrim, intersection);
 		if (isIntersecting) {
 			toTrim.p2 = intersection.p;
@@ -158,14 +158,14 @@ public:
 	}
 
 	bool lineIntersection(Ray& r1, Ray& r2, Intersection& intersection) {
+		intersection.r1 = r1;
+		intersection.r2 = r2;
+
 		sf::Vector2f dir1 = r1.directionVector();
 		sf::Vector2f dir2 = r2.directionVector();
 
 		float t = 0;
-		float mulFactor = 0;
-
-		intersection.r1 = r1;
-		intersection.r2 = r2;
+		float mulFactor = 0;		
 
 
 		// One of the direction vectors are (0, 0)
@@ -323,7 +323,7 @@ int main() {
 					}
 				}
 			}
-		}		
+		}
 
 		window.clear();
 			
