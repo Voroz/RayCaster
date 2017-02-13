@@ -111,19 +111,37 @@ public:
 			Intersection intersection = Intersection(FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), sf::Vector2f(0, 0));
 			bool isIntersecting = lineIntersection(*newRay, *ray, intersection);
 			if (isIntersecting) {
+				FiniteRay& fr2 = static_cast<FiniteRay&>(*ray);
+				fr2.p2 = intersection.p;
 				intersections.push_back(intersection);
 			}
 		}
 		rays.push_back(newRay);
 	}
 
+	void trimStart(FiniteRay& toTrim, FiniteRay trimWith) {
+		Intersection intersection = Intersection(FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), sf::Vector2f(0, 0));
+		bool isIntersecting = lineIntersection(trimWith, toTrim, intersection);
+		if (isIntersecting) {
+			toTrim.p1 = intersection.p;
+		}
+	}
+
+	void trimEnd(FiniteRay& toTrim, FiniteRay trimWith) {
+		Intersection intersection = Intersection(FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0)), sf::Vector2f(0, 0));
+		bool isIntersecting = lineIntersection(trimWith, toTrim, intersection);
+		if (isIntersecting) {
+			toTrim.p2 = intersection.p;
+		}
+	}
+
 	void renderFiniteLines(sf::RenderWindow& window) {
-		std::vector<FiniteRay> fRays = finiteRays();
+		std::vector<FiniteRay*> fRays = finiteRays();
 		sf::VertexArray vertexArray(sf::PrimitiveType::Lines, fRays.size() * 2);
 
 		for (int i = 0; i < fRays.size(); i++) {
-			vertexArray[i * 2] = fRays[i].p1;
-			vertexArray[i * 2 + 1] = fRays[i].p2;
+			vertexArray[i * 2] = fRays[i]->p1;
+			vertexArray[i * 2 + 1] = fRays[i]->p2;
 		}
 		window.draw(vertexArray);
 	}
@@ -244,22 +262,22 @@ public:
 		}
 	}
 
-	std::vector<FiniteRay> finiteRays() {
-		std::vector<FiniteRay> finiteRays;
+	std::vector<FiniteRay*> finiteRays() {
+		std::vector<FiniteRay*> finiteRays;
 		for (auto ray : rays) {
 			if (ray->identify() == RayType::Finite) {
-				FiniteRay& finiteRay = static_cast<FiniteRay&>(*ray);
+				FiniteRay* finiteRay = static_cast<FiniteRay*>(ray);
 				finiteRays.push_back(finiteRay);
 			}
 		}
 		return finiteRays;
 	}
 
-	std::vector<InfiniteRay> infiniteRays() {
-		std::vector<InfiniteRay> infiniteRays;
+	std::vector<InfiniteRay*> infiniteRays() {
+		std::vector<InfiniteRay*> infiniteRays;
 		for (auto ray : rays) {
 			if (ray->identify() == RayType::Infinite) {
-				InfiniteRay& infiniteRay = static_cast<InfiniteRay&>(*ray);
+				InfiniteRay* infiniteRay = static_cast<InfiniteRay*>(ray);
 				infiniteRays.push_back(infiniteRay);
 			}
 		}
@@ -300,7 +318,9 @@ int main() {
 			}
 			if (event.type == sf::Event::MouseButtonReleased) {
 				if (event.mouseButton.button == sf::Mouse::Button::Left) {
-					rs.spawnRay(new FiniteRay(currentRay));
+					for (auto ray : rs.finiteRays()) {
+						rs.trimEnd(*ray, currentRay);
+					}
 				}
 			}
 		}		
