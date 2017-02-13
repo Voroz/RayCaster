@@ -118,12 +118,17 @@ public:
 	}
 
 	void renderFiniteLines(sf::RenderWindow& window) {
-		for (auto ray : finiteRays()) {
-			sf::Vertex vertex[] = { ray.p1, ray.p2 };
-			window.draw(vertex, 2, sf::PrimitiveType::Lines);
+		std::vector<FiniteRay> fRays = finiteRays();
+		sf::VertexArray vertexArray(sf::PrimitiveType::Lines, fRays.size() * 2);
+
+		for (int i = 0; i < fRays.size(); i++) {
+			vertexArray[i * 2] = fRays[i].p1;
+			vertexArray[i * 2 + 1] = fRays[i].p2;
 		}
+		window.draw(vertexArray);
 	}
 
+	// Very slow function
 	void renderInterSectionPoints(sf::RenderWindow& window) {
 		for (auto intersection : intersections) {
 			sf::CircleShape circle(3);
@@ -270,12 +275,14 @@ public:
 
 int main() {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Intersection Test");
+	window.setVerticalSyncEnabled(true);
+	
 	FiniteRay currentRay = FiniteRay(sf::Vector2f(0, 0), sf::Vector2f(0, 0));
 
 	RaySystem rs;
 
-	for (float ang = 0; ang < 2 * M_PI; ang += M_PI / 50) {
-		rs.spawnRay(new FiniteRay(sf::Vector2f(400, 300), ang, 300));
+	for (float ang = 0; ang < 2 * M_PI; ang += M_PI / 100) {
+		rs.spawnRay(new FiniteRay(sf::Vector2f(400 + 5*cos(ang), 300 + 5*sin(ang)), ang, 300));
 	}
 
 	while (window.isOpen())
