@@ -17,8 +17,6 @@ void RaySystem::spawnRay(Ray* newRay) {
 		Intersection intersection = Intersection(*newRay, *ray, sf::Vector2f(0, 0));
 		bool isIntersecting = rayIntersection(*newRay, *ray, intersection);
 		if (isIntersecting) {
-			FiniteRay& fr2 = static_cast<FiniteRay&>(*ray);
-			fr2.p2 = intersection.p;
 			intersections.push_back(intersection);
 		}
 	}
